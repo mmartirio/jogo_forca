@@ -93,6 +93,9 @@
                 <!-- Palavra -->
                 <div class="word-container">
                     <div id="word-display" class="word-display"></div>
+                    <div id="hint-display" class="hint-display" style="margin-top: 1rem; padding: 0.8rem; background: #f0f7ff; border-left: 4px solid #667eea; border-radius: 8px; display: none;">
+                        <strong style="color: #667eea;">💡 Dica:</strong> <span id="hint-text"></span>
+                    </div>
                 </div>
 
                 <!-- Letras Tentadas -->
@@ -114,7 +117,18 @@
             <p id="word-creator-name" class="creator-name"></p>
             <p class="instruction">Digite uma palavra para o outro jogador adivinhar</p>
             <input type="text" id="secret-word-input" placeholder="Digite a palavra" maxlength="15">
-            <button onclick="submitSecretWord()" class="btn btn-primary">Confirmar Palavra</button>
+            
+            <div class="hint-section" style="margin-top: 1rem;">
+                <label for="hint-input" style="display: block; margin-bottom: 0.5rem; color: #555;">💡 Dica (opcional):</label>
+                <input type="text" id="hint-input" placeholder="Ex: Usa na cabeça" maxlength="100" style="width: 100%; padding: 0.8rem; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;">
+                
+                <div style="margin-top: 0.8rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" id="generate-hint-checkbox" style="width: 18px; height: 18px; cursor: pointer;">
+                    <label for="generate-hint-checkbox" style="cursor: pointer; color: #667eea; font-weight: 500;">🤖 Gerar dica com IA</label>
+                </div>
+            </div>
+            
+            <button onclick="submitSecretWord()" class="btn btn-primary" style="margin-top: 1.5rem;">Confirmar Palavra</button>
         </div>
     </div>
 

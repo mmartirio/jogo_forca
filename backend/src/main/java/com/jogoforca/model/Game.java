@@ -14,6 +14,7 @@ public class Game {
     private String wordCreator;
     private String wordGuesser;
     private String secretWord;
+    private String hint; // Dica para a palavra
     private Integer wordLength;
     private List<String> guessedLetters;
     private Map<String, List<Integer>> correctPositions;
@@ -22,7 +23,7 @@ public class Game {
     private String gameStatus; // "waiting_word", "playing", "round_finished", "game_finished"
     private String roundWinner;
     private String gameWinner;
-    
+
     public Game() {
         this.guessedLetters = new ArrayList<>();
         this.correctPositions = new HashMap<>();

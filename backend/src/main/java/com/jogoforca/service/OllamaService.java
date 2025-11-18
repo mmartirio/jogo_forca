@@ -87,4 +87,60 @@ public class OllamaService {
                 word.length() <= 10 &&
                 word.matches("[A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ]+");
     }
+
+    public String generateHint(String word) {
+        for (String model : MODELS) {
+            try {
+                String hint = tryGenerateHintWithModel(model, word);
+                if (hint != null && !hint.trim().isEmpty() && hint.length() <= 100) {
+                    return hint;
+                }
+            } catch (Exception e) {
+                System.out.println("Modelo " + model + " falhou ao gerar dica: " + e.getMessage());
+            }
+        }
+
+        // Fallback: dica genérica
+        return "Tente adivinhar!";
+    }
+
+    private String tryGenerateHintWithModel(String model, String word) {
+        try {
+            String prompt = String.format(
+                    "Dê uma dica curta (máximo 10 palavras) para a palavra '%s'. Apenas a dica, sem a palavra:",
+                    word);
+
+            Map<String, Object> requestBody = Map.of(
+                    "model", model,
+                    "prompt", prompt,
+                    "stream", false,
+                    "options", Map.of(
+                            "temperature", 0.7,
+                            "num_predict", 20,
+                            "top_p", 0.9));
+
+            String response = webClient.post()
+                    .uri("/api/generate")
+                    .bodyValue(Objects.requireNonNull(requestBody))
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .timeout(Duration.ofSeconds(8))
+                    .block();
+
+            if (response != null) {
+                JsonNode jsonNode = objectMapper.readTree(response);
+                String hint = jsonNode.get("response").asText().trim();
+
+                // Limpar e validar dica
+                if (hint.length() > 100) {
+                    hint = hint.substring(0, 100);
+                }
+
+                return hint;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao gerar dica com " + model, e);
+        }
+        return null;
+    }
 }

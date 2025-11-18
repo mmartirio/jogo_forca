@@ -50,12 +50,14 @@ public class GameController {
     public ResponseEntity<?> submitWord(@PathVariable String gameId,
             @Valid @RequestBody WordSubmit wordSubmit) {
         try {
-            log.debug("[submitWord] gameId={} wordLength={}", gameId,
-                    wordSubmit.getWord() != null ? wordSubmit.getWord().length() : null);
-            Game game = gameService.submitWord(gameId, wordSubmit.getWord());
+            log.debug("[submitWord] gameId={} wordLength={} hint={} generateHint={}", gameId,
+                    wordSubmit.getWord() != null ? wordSubmit.getWord().length() : null,
+                    wordSubmit.getHint(), wordSubmit.getGenerateHint());
+            Game game = gameService.submitWord(gameId, wordSubmit.getWord(),
+                    wordSubmit.getHint(), wordSubmit.getGenerateHint());
             Map<String, Object> resp = convertToResponse(game);
-            log.debug("[submitWord] gameId={} -> status={} guesser={}", gameId, game.getGameStatus(),
-                    game.getWordGuesser());
+            log.debug("[submitWord] gameId={} -> status={} guesser={} hint={}", gameId, game.getGameStatus(),
+                    game.getWordGuesser(), game.getHint() != null ? "presente" : "ausente");
             return ResponseEntity.ok(resp);
         } catch (IllegalArgumentException | IllegalStateException e) {
             log.warn("[submitWord] bad request for gameId {}: {}", gameId, e.getMessage());
@@ -172,6 +174,7 @@ public class GameController {
         response.put("word_creator", game.getWordCreator() != null ? game.getWordCreator() : "");
         response.put("word_guesser", game.getWordGuesser() != null ? game.getWordGuesser() : "");
         response.put("word_length", game.getWordLength() != null ? game.getWordLength() : 0);
+        response.put("hint", game.getHint() != null ? game.getHint() : "");
         response.put("guessed_letters", game.getGuessedLetters());
         response.put("correct_positions", game.getCorrectPositions());
         response.put("attempts_left", game.getAttemptsLeft());

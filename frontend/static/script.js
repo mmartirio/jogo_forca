@@ -207,6 +207,12 @@ function showWordModal(creatorName) {
     creatorNameEl.textContent = `${creatorName}, é sua vez de criar a palavra!`;
     modal.classList.add('active');
     document.getElementById('secret-word-input').value = '';
+    
+    // Limpar campos de dica
+    const hintInput = document.getElementById('hint-input');
+    const generateHintCheckbox = document.getElementById('generate-hint-checkbox');
+    if (hintInput) hintInput.value = '';
+    if (generateHintCheckbox) generateHintCheckbox.checked = false;
 }
 
 async function submitSecretWord() {
@@ -216,12 +222,25 @@ async function submitSecretWord() {
     if (!word) { alert('Digite uma palavra!'); return; }
     if (!word.match(/^[A-ZÀ-Ú]+$/)) { alert('A palavra deve conter apenas letras!'); return; }
     if (word.length < 3) { alert('A palavra deve ter pelo menos 3 letras!'); return; }
+    
+    const hintInput = document.getElementById('hint-input');
+    const generateHintCheckbox = document.getElementById('generate-hint-checkbox');
+    const hint = hintInput ? hintInput.value.trim() : '';
+    const generateHint = generateHintCheckbox ? generateHintCheckbox.checked : false;
+    
     showLoading(true);
     try {
+        const payload = { word };
+        if (generateHint) {
+            payload.generateHint = true;
+        } else if (hint) {
+            payload.hint = hint;
+        }
+        
         const response = await fetch(`/api/proxy/game/${gameState.gameId}/submit-word`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ word })
+            body: JSON.stringify(payload)
         });
         const data = await response.json();
         debugLog('submitSecretWord response', { ok: response.ok, data });
@@ -360,6 +379,16 @@ function updateGameUI(data) {
         wordDisplay.innerHTML = word.map(char => `
             <div class="letter-box">${char === '_' ? '' : char}</div>
         `).join('');
+    }
+    
+    // Mostrar dica se disponível
+    const hintDisplay = document.getElementById('hint-display');
+    const hintText = document.getElementById('hint-text');
+    if (data.hint && data.hint.trim()) {
+        hintText.textContent = data.hint;
+        hintDisplay.style.display = 'block';
+    } else {
+        hintDisplay.style.display = 'none';
     }
     
     // Atualizar tentativas

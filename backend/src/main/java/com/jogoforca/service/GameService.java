@@ -145,6 +145,41 @@ public class GameService {
         return game;
     }
 
+    public Game submitWord(String gameId, String word, String hint, Boolean generateHint) {
+        Game game = getGame(gameId);
+
+        if (!"pvp".equals(game.getMode())) {
+            throw new IllegalStateException("Esta ação só é válida para modo PvP");
+        }
+
+        if (!"waiting_word".equals(game.getGameStatus())) {
+            throw new IllegalStateException("Não é possível submeter palavra neste momento");
+        }
+
+        word = word.toUpperCase().trim();
+
+        if (!word.matches("[A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞŸ]+")) {
+            throw new IllegalArgumentException("Palavra deve conter apenas letras");
+        }
+
+        game.setSecretWord(word);
+        game.setWordLength(word.length());
+
+        // Processar dica
+        if (generateHint != null && generateHint) {
+            // Gerar dica com IA
+            String generatedHint = ollamaService.generateHint(word);
+            game.setHint(generatedHint);
+        } else if (hint != null && !hint.trim().isEmpty()) {
+            // Usar dica fornecida pelo usuário
+            game.setHint(hint.trim());
+        }
+
+        game.setGameStatus("playing");
+
+        return game;
+    }
+
     public Map<String, Object> guessLetter(String gameId, String letter) {
         Game game = getGame(gameId);
 
