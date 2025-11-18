@@ -104,6 +104,9 @@ public class GameService {
 
         game.getPlayers().add(playerName);
 
+        // Adicionar jogador ao mapa de scores
+        game.getScores().put(playerName, 0);
+
         // Se agora houver pelo menos 2 jogadores e ainda estamos aguardando jogadores,
         // definir papéis
         if (game.getPlayers().size() >= 2 && "waiting_players".equals(game.getGameStatus())) {
@@ -373,6 +376,81 @@ public class GameService {
                     break;
                 }
             }
+        }
+    }
+
+    public Game abandonGame(String gameId, String player) {
+        Game game = getGame(gameId);
+
+        if (player == null || player.isBlank()) {
+            throw new IllegalArgumentException("Nome do jogador é obrigatório");
+        }
+
+        if (!game.getPlayers().contains(player)) {
+            throw new IllegalArgumentException("Jogador não está no jogo");
+        }
+
+        // Remover jogador da lista
+        game.getPlayers().remove(player);
+
+        // Remover score do jogador
+        if (game.getScores() != null) {
+            game.getScores().remove(player);
+        }
+
+        // Se o jogo ficou sem jogadores, marcar como terminado
+        if (game.getPlayers().isEmpty()) {
+            game.setGameStatus("game_finished");
+            game.setGameWinner(null);
+        }
+        // Se era PvP com 2 jogadores e sobrou apenas 1, declarar vencedor
+        else if ("pvp".equals(game.getMode()) && game.getPlayers().size() == 1) {
+            game.setGameStatus("game_finished");
+            game.setGameWinner(game.getPlayers().get(0));
+        }
+        // Se o jogador que abandonou era o criador ou adivinhador da rodada atual
+        else {
+            if (player.equals(game.getWordCreator()) || player.equals(game.getWordGuesser())) {
+                // Avançar para próxima rodada ou finalizar jogo
+                if (game.getCurrentRound() >= game.getMaxRounds()) {
+                    game.setGameStatus("game_finished");
+                    determineWinner(game);
+                } else {
+                    // Iniciar próxima rodada
+                    try {
+                        nextRound(gameId);
+                    } catch (Exception e) {
+                        // Se falhar, finalizar jogo
+                        game.setGameStatus("game_finished");
+                        determineWinner(game);
+                    }
+                }
+            }
+        }
+
+        return game;
+    }
+
+    private void determineWinner(Game game) {
+        if (game.getScores() == null || game.getScores().isEmpty()) {
+            game.setGameWinner(null);
+            return;
+        }
+
+        int maxScore = game.getScores().values().stream()
+                .max(Integer::compareTo)
+                .orElse(0);
+
+        List<String> winners = game.getScores().entrySet().stream()
+                .filter(e -> e.getValue() == maxScore)
+                .map(Map.Entry::getKey)
+                .toList();
+
+        if (winners.size() == 1) {
+            game.setGameWinner(winners.get(0));
+        } else {
+            // Empate - pode escolher um aleatoriamente ou deixar null
+            game.setGameWinner(null);
         }
     }
 

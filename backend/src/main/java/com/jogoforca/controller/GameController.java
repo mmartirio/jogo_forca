@@ -146,6 +146,26 @@ public class GameController {
         }
     }
 
+    @PostMapping("/{gameId}/abandon")
+    public ResponseEntity<?> abandonGame(@PathVariable String gameId,
+            @RequestBody Map<String, String> request) {
+        try {
+            String player = request.get("player");
+            log.debug("[abandon] gameId={} player={}", gameId, player);
+            Game game = gameService.abandonGame(gameId, player);
+            Map<String, Object> resp = convertToResponse(game);
+            log.debug("[abandon] gameId={} status={} players={}", gameId, game.getGameStatus(), game.getPlayers());
+            return ResponseEntity.ok(resp);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            log.warn("[abandon] bad request for gameId {}: {}", gameId, e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("detail", e.getMessage()));
+        } catch (Exception e) {
+            log.error("[abandon] error gameId={}", gameId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("detail", "Erro ao abandonar jogo: " + e.getMessage()));
+        }
+    }
+
     @DeleteMapping("/{gameId}")
     public ResponseEntity<?> deleteGame(@PathVariable String gameId) {
         try {
