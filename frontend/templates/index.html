@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Forca</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        // Base sugerida para convite em rede local (quando a aba estiver em localhost)
+        window.LOCAL_INVITE_BASE = "http://{{ local_ip }}:5000";
+    </script>
+</head>
+<body>
+    <div class="container">
+        <!-- Tela de Configuração Inicial -->
+        <div id="setup-screen" class="screen active">
+            <h1 class="game-title">🎮 JOGO DA FORCA 🎮</h1>
+            
+            <div class="setup-card">
+                <h2>Configurar Jogo</h2>
+                
+                <div class="mode-selection">
+                    <label>
+                        <input type="radio" name="mode" value="pvp" checked>
+                        <span class="mode-option">👥 Jogador vs Jogador</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="mode" value="pvc">
+                        <span class="mode-option">🤖 Jogador vs CPU</span>
+                    </label>
+                </div>
+                
+                <div id="players-input" class="players-input">
+                    <h3>Adicionar Jogadores (2-5)</h3>
+                    <div class="player-add">
+                        <input type="text" id="player-name-input" placeholder="Nome do jogador" maxlength="15">
+                        <button onclick="addPlayer()" class="btn btn-add">Adicionar</button>
+                    </div>
+                    <ul id="players-list" class="players-list"></ul>
+                </div>
+                
+                <button onclick="startGame()" class="btn btn-primary btn-large">Iniciar Jogo</button>
+            </div>
+        </div>
+
+        <!-- Tela do Jogo -->
+        <div id="game-screen" class="screen">
+            <!-- Placar -->
+            <div class="scoreboard">
+                <h2>Placar</h2>
+                <div id="scores" class="scores"></div>
+            </div>
+
+            <!-- Informações da Rodada -->
+            <div class="round-info">
+                <span id="round-number">Rodada 1/3</span>
+                <span id="turn-info"></span>
+                <button onclick="shareGame()" class="btn btn-share" title="Compartilhar jogo">
+                    🔗 Compartilhar
+                </button>
+            </div>
+
+            <!-- Área da Forca -->
+            <div class="game-area">
+                <div class="hangman-container">
+                    <svg id="hangman" viewBox="0 0 200 250">
+                        <!-- Base -->
+                        <line x1="10" y1="230" x2="150" y2="230" stroke="#8B4513" stroke-width="4"/>
+                        <!-- Poste vertical -->
+                        <line x1="50" y1="230" x2="50" y2="20" stroke="#8B4513" stroke-width="4"/>
+                        <!-- Poste horizontal -->
+                        <line x1="50" y1="20" x2="130" y2="20" stroke="#8B4513" stroke-width="4"/>
+                        <!-- Corda -->
+                        <line x1="130" y1="20" x2="130" y2="50" stroke="#8B4513" stroke-width="2"/>
+                        
+                        <!-- Partes do boneco (inicialmente escondidas) -->
+                        <!-- Cabeça -->
+                        <circle id="head" cx="130" cy="70" r="20" stroke="#000" stroke-width="3" fill="none" class="hangman-part"/>
+                        <!-- Corpo -->
+                        <line id="body" x1="130" y1="90" x2="130" y2="150" stroke="#000" stroke-width="3" class="hangman-part"/>
+                        <!-- Braço esquerdo -->
+                        <line id="left-arm" x1="130" y1="110" x2="100" y2="130" stroke="#000" stroke-width="3" class="hangman-part"/>
+                        <!-- Braço direito -->
+                        <line id="right-arm" x1="130" y1="110" x2="160" y2="130" stroke="#000" stroke-width="3" class="hangman-part"/>
+                        <!-- Perna esquerda -->
+                        <line id="left-leg" x1="130" y1="150" x2="110" y2="190" stroke="#000" stroke-width="3" class="hangman-part"/>
+                        <!-- Perna direita -->
+                        <line id="right-leg" x1="130" y1="150" x2="150" y2="190" stroke="#000" stroke-width="3" class="hangman-part"/>
+                    </svg>
+                    <div id="attempts-left" class="attempts">Tentativas: 6/6</div>
+                </div>
+
+                <!-- Palavra -->
+                <div class="word-container">
+                    <div id="word-display" class="word-display"></div>
+                </div>
+
+                <!-- Letras Tentadas -->
+                <div class="guessed-letters-container">
+                    <h3>Letras Tentadas:</h3>
+                    <div id="guessed-letters" class="guessed-letters"></div>
+                </div>
+
+                <!-- Teclado -->
+                <div id="keyboard" class="keyboard"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Criar Palavra (PvP) -->
+    <div id="word-modal" class="modal">
+        <div class="modal-content">
+            <h2>🔒 Criar Palavra Secreta</h2>
+            <p id="word-creator-name" class="creator-name"></p>
+            <p class="instruction">Digite uma palavra para o outro jogador adivinhar</p>
+            <input type="text" id="secret-word-input" placeholder="Digite a palavra" maxlength="15">
+            <button onclick="submitSecretWord()" class="btn btn-primary">Confirmar Palavra</button>
+        </div>
+    </div>
+
+    <!-- Modal de Resultado -->
+    <div id="result-modal" class="modal">
+        <div class="modal-content result-content">
+            <h1 class="winner-title">🏆 VENCEDOR! 🏆</h1>
+            <div class="winner-info">
+                <div class="trophy">🏆</div>
+                <h2 id="winner-name" class="winner-name"></h2>
+            </div>
+            <p id="result-message" class="result-message"></p>
+            <div id="next-round-section">
+                <p class="next-text">Iniciar próxima partida</p>
+                <button onclick="nextRound()" class="btn btn-primary btn-large">Iniciar</button>
+            </div>
+            <div id="game-over-section" style="display: none;">
+                <button onclick="backToMenu()" class="btn btn-primary btn-large">Voltar ao Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Carregamento -->
+    <div id="loading-modal" class="modal">
+        <div class="modal-content loading-content">
+            <div class="spinner"></div>
+            <p>Carregando...</p>
+        </div>
+    </div>
+
+    <!-- Modal de Compartilhamento -->
+    <div id="share-modal" class="modal">
+        <div class="modal-content">
+            <h2>🔗 Compartilhar Jogo</h2>
+            <p class="instruction">Compartilhe este link com outros jogadores:</p>
+            <div class="share-link-container">
+                <input type="text" id="share-link" readonly class="share-link-input">
+                <button onclick="copyShareLink()" class="btn btn-copy">📋 Copiar</button>
+            </div>
+            <div id="share-qr" class="qr-container"></div>
+            <button onclick="closeShareModal()" class="btn btn-secondary">Fechar</button>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

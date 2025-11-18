@@ -1,0 +1,642 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Telas */
+.screen {
+    display: none;
+}
+
+.screen.active {
+    display: block;
+}
+
+/* Tela de Setup */
+.game-title {
+    text-align: center;
+    color: white;
+    font-size: 3rem;
+    margin-bottom: 2rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.setup-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.setup-card h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 2rem;
+}
+
+.mode-selection {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.mode-selection label {
+    flex: 1;
+    min-width: 200px;
+    cursor: pointer;
+}
+
+.mode-selection input[type="radio"] {
+    display: none;
+}
+
+.mode-option {
+    display: block;
+    padding: 1rem;
+    background: #f0f0f0;
+    border: 3px solid transparent;
+    border-radius: 10px;
+    text-align: center;
+    transition: all 0.3s;
+    font-size: 1.1rem;
+}
+
+.mode-selection input[type="radio"]:checked + .mode-option {
+    background: #667eea;
+    color: white;
+    border-color: #764ba2;
+    transform: scale(1.05);
+}
+
+.players-input {
+    margin-bottom: 2rem;
+}
+
+.players-input h3 {
+    margin-bottom: 1rem;
+    color: #555;
+}
+
+.player-add {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.player-add input {
+    flex: 1;
+    padding: 0.8rem;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.players-list {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.player-tag {
+    background: #667eea;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.player-tag button {
+    background: rgba(255,255,255,0.3);
+    border: none;
+    color: white;
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    font-size: 0.8rem;
+}
+
+/* Botões */
+.btn {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 600;
+}
+
+.btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #764ba2;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.btn-add {
+    background: #10b981;
+    color: white;
+}
+
+.btn-add:hover {
+    background: #059669;
+}
+
+.btn-large {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.2rem;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+.btn-share {
+    background: #ff6b6b;
+    color: white;
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    margin-left: auto;
+}
+
+.btn-share:hover {
+    background: #ee5a52;
+    transform: translateY(-2px);
+}
+
+.btn-copy {
+    background: #3b82f6;
+    color: white;
+    white-space: nowrap;
+}
+
+.btn-copy:hover {
+    background: #2563eb;
+}
+
+/* Tela do Jogo */
+#game-screen {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.scoreboard {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.scoreboard h2 {
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.scores {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.score-item {
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.score-item .player-name {
+    font-weight: bold;
+    color: #667eea;
+    margin-bottom: 0.5rem;
+}
+
+.score-item .player-score {
+    font-size: 1.5rem;
+    color: #333;
+}
+
+.round-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #e3f2fd;
+    border-radius: 10px;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.round-info span {
+    font-weight: bold;
+    color: #1976d2;
+    flex: 1;
+    min-width: 120px;
+}
+
+.game-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+}
+
+.hangman-container {
+    text-align: center;
+}
+
+#hangman {
+    width: 250px;
+    height: 300px;
+    max-width: 100%;
+}
+
+.hangman-part {
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.hangman-part.visible {
+    opacity: 1;
+}
+
+.attempts {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #333;
+    margin-top: 1rem;
+}
+
+.word-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.word-display {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.letter-box {
+    width: 50px;
+    height: 60px;
+    border: 3px solid #667eea;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #333;
+    background: white;
+}
+
+.guessed-letters-container {
+    text-align: center;
+    width: 100%;
+}
+
+.guessed-letters-container h3 {
+    margin-bottom: 1rem;
+    color: #555;
+}
+
+.guessed-letters {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    min-height: 40px;
+}
+
+.guessed-letter {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.guessed-letter.correct {
+    background: #10b981;
+    color: white;
+}
+
+.guessed-letter.incorrect {
+    background: #ef4444;
+    color: white;
+}
+
+.keyboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+    gap: 8px;
+    max-width: 700px;
+    width: 100%;
+}
+
+.key {
+    padding: 1rem;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.key:hover:not(:disabled) {
+    background: #764ba2;
+    transform: translateY(-2px);
+}
+
+.key:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 20px;
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 10px 50px rgba(0,0,0,0.5);
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-content h2 {
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.creator-name {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #667eea;
+    margin-bottom: 1rem;
+}
+
+.instruction {
+    color: #666;
+    margin-bottom: 1.5rem;
+}
+
+#secret-word-input {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.2rem;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+}
+
+.result-content {
+    max-width: 600px;
+}
+
+.winner-title {
+    font-size: 2.5rem;
+    color: #f59e0b;
+    margin-bottom: 1.5rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.winner-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.trophy {
+    font-size: 5rem;
+    animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+.winner-name {
+    font-size: 2rem;
+    color: #667eea;
+}
+
+.result-message {
+    font-size: 1.2rem;
+    color: #666;
+    margin-bottom: 2rem;
+}
+
+.next-text {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.loading-content {
+    max-width: 300px;
+}
+
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Estilos do modal de compartilhamento */
+.share-link-container {
+    display: flex;
+    gap: 0.5rem;
+    margin: 1.5rem 0;
+    flex-wrap: wrap;
+}
+
+.share-link-input {
+    flex: 1;
+    min-width: 250px;
+    padding: 0.8rem;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: #f8f9fa;
+}
+
+.qr-container {
+    text-align: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    margin: 1rem 0;
+}
+
+.qr-container img {
+    display: block;
+    margin: 0 auto;
+    border: 3px solid #667eea;
+    border-radius: 10px;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .game-title {
+        font-size: 2rem;
+    }
+    
+    .setup-card {
+        padding: 1.5rem;
+    }
+    
+    .mode-selection {
+        flex-direction: column;
+    }
+    
+    .mode-option {
+        min-width: auto;
+    }
+    
+    .letter-box {
+        width: 40px;
+        height: 50px;
+        font-size: 1.5rem;
+    }
+    
+    .keyboard {
+        grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+        gap: 5px;
+    }
+    
+    .key {
+        padding: 0.8rem;
+        font-size: 1rem;
+    }
+    
+    #hangman {
+        width: 200px;
+        height: 240px;
+    }
+    
+    .winner-title {
+        font-size: 1.8rem;
+    }
+    
+    .trophy {
+        font-size: 3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+    
+    #game-screen {
+        padding: 1rem;
+    }
+    
+    .scores {
+        gap: 1rem;
+    }
+    
+    .letter-box {
+        width: 35px;
+        height: 45px;
+        font-size: 1.3rem;
+        gap: 5px;
+    }
+}
