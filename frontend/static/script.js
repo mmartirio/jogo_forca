@@ -746,10 +746,6 @@ function shareGame() {
 
 function copyShareLink(btn) {
     const linkInput = document.getElementById('share-link');
-    linkInput.focus();
-    linkInput.select();
-    linkInput.setSelectionRange(0, 99999); // Para mobile
-
     const value = linkInput.value;
 
     const onCopied = () => {
@@ -772,24 +768,29 @@ function copyShareLink(btn) {
             if (window.ClipboardItem) {
                 const html = `<a href="${value}">${value}</a>`;
                 const item = new ClipboardItem({
-                    'text/plain': new Blob([value], { type: 'text/plain' }),
-                    'text/html': new Blob([html], { type: 'text/html' })
+                    'text/html': new Blob([html], { type: 'text/html' }),
+                    'text/plain': new Blob([value], { type: 'text/plain' })
                 });
-                navigator.clipboard.write([item]).then(onCopied).catch(() => {
-                    navigator.clipboard.writeText(value).then(onCopied).catch(() => {
-                        // Fallback: execCommand
-                        try {
-                            const ok = document.execCommand('copy');
-                            if (ok) onCopied(); else throw new Error('copy command falhou');
-                        } catch (err) {
-                            alert('Erro ao copiar: ' + err);
-                        }
+                navigator.clipboard.write([item])
+                    .then(onCopied)
+                    .catch(() => {
+                        // Fallback para texto simples
+                        navigator.clipboard.writeText(value)
+                            .then(onCopied)
+                            .catch(() => {
+                                // Fallback final: execCommand
+                                copyFallback(linkInput, onCopied);
+                            });
                     });
-                });
                 return;
             } else {
                 // Sem ClipboardItem, copia texto simples
-                navigator.clipboard.writeText(value).then(onCopied).catch(() => { /* fallback abaixo */ });
+                navigator.clipboard.writeText(value)
+                    .then(onCopied)
+                    .catch(() => {
+                        copyFallback(linkInput, onCopied);
+                    });
+                return;
             }
         } catch (e) {
             // Continua para fallback
@@ -797,11 +798,22 @@ function copyShareLink(btn) {
     }
 
     // Fallback imediato: execCommand
+    copyFallback(linkInput, onCopied);
+}
+
+function copyFallback(input, callback) {
     try {
+        input.focus();
+        input.select();
+        input.setSelectionRange(0, 99999); // Para mobile
         const ok = document.execCommand('copy');
-        if (ok) onCopied(); else throw new Error('copy command falhou');
+        if (ok) {
+            callback();
+        } else {
+            throw new Error('Comando de cópia falhou');
+        }
     } catch (err) {
-        alert('Erro ao copiar: ' + err);
+        alert('Erro ao copiar: ' + err.message);
     }
 }
 
@@ -813,15 +825,26 @@ function generateQRCode(url) {
     const qrContainer = document.getElementById('share-qr');
     qrContainer.innerHTML = '';
     
-    // Criar QR code usando API do Google Charts (simples e sem dependências)
-    const qrSize = 200;
-    const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chl=${encodeURIComponent(url)}&chs=${qrSize}x${qrSize}`;
+    // Verifica se a biblioteca QRCode está disponível
+    if (typeof QRCode === 'undefined') {
+        qrContainer.innerHTML = '<p style="color: #888; font-size: 14px;">QR Code indisponível</p>';
+        return;
+    }
     
-    const img = document.createElement('img');
-    img.src = qrUrl;
-    img.alt = 'QR Code';
-    
-    qrContainer.appendChild(img);
+    // Criar QR code usando QRCode.js
+    try {
+        new QRCode(qrContainer, {
+            text: url,
+            width: 200,
+            height: 200,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+        });
+    } catch (err) {
+        console.error('Erro ao gerar QR Code:', err);
+        qrContainer.innerHTML = '<p style="color: #888; font-size: 14px;">Erro ao gerar QR Code</p>';
+    }
 }
 
 async function abandonGame() {
