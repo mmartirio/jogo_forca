@@ -170,6 +170,17 @@ body {
     background: #059669;
 }
 
+.btn-danger {
+    background: #ef4444;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(239, 68, 68, 0.3);
+}
+
 .btn-large {
     width: 100%;
     padding: 1rem;
@@ -317,9 +328,9 @@ body {
 }
 
 .word-container {
-    width: 100%;
     display: flex;
-    justify-content: center;
+    align-items: center;
+    gap: 1.2rem;
 }
 
 .word-display {
@@ -478,6 +489,30 @@ body {
     border-radius: 8px;
     margin-bottom: 1.5rem;
     text-transform: uppercase;
+}
+
+/* Dica na modal de palavra secreta */
+.hint-section {
+    margin-top: 0.5rem !important;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+.hint-section label {
+    align-self: flex-end;
+}
+.hint-section input[type="text"] {
+    width: 60%;
+    min-width: 220px;
+    align-self: flex-end;
+}
+.hint-section .ai-hint-row {
+    align-self: flex-end;
+}
+
+/* Espaço extra abaixo do campo de palavra */
+#secret-word-input {
+    margin-bottom: 1.2rem;
 }
 
 .result-content {
@@ -736,4 +771,21 @@ body {
         width: 140px;
         height: 140px;
     }
+}
+
+/* Dica na modal de palavra secreta - novo estilo */
+.hint-display {
+    margin-top: 1.5rem !important;
+    margin-bottom: 1.5rem !important;
+    margin-left: 10px !important;
+    padding: 0.8rem;
+    background: #f0f7ff;
+    border-left: 4px solid #667eea;
+    border-radius: 8px;
+    display: none;
+}
+.hint-display strong {
+    color: #667eea;
+    font-weight: bold;
+    font-size: 1.05em;
 }

@@ -18,6 +18,11 @@ function getLocalPlayerName() {
 function hideWordModal() {
     const modal = document.getElementById('word-modal');
     if (modal) modal.classList.remove('active');
+    
+    // Retomar polling quando modal fechar
+    if (gameState.gameId) {
+        startPolling();
+    }
 }
 
 function setKeyboardEnabledForGuesser(data) {
@@ -38,6 +43,25 @@ function setKeyboardEnabledForGuesser(data) {
 if (typeof window.DEBUG === 'undefined') { window.DEBUG = false; }
 function debugLog(...args) {
     try { if (window.DEBUG) console.log('[DEBUG]', ...args); } catch (_) {}
+}
+
+// Polling de estado (auto-atualização)
+let pollIntervalId = null;
+function startPolling(intervalMs = 1500) {
+    try { if (pollIntervalId) clearInterval(pollIntervalId); } catch (_) {}
+    if (!gameState.gameId) return;
+    pollIntervalId = setInterval(() => {
+        // Apenas atualiza se houver jogo
+        if (gameState.gameId) {
+            refreshGameState();
+        }
+    }, intervalMs);
+    debugLog('polling:start', { intervalMs });
+}
+function stopPolling() {
+    try { if (pollIntervalId) clearInterval(pollIntervalId); } catch (_) {}
+    pollIntervalId = null;
+    debugLog('polling:stop');
 }
 
 // Configuração inicial
@@ -61,35 +85,12 @@ function updatePlayersInput() {
     const playersInput = document.getElementById('players-input');
     if (gameState.mode === 'pvc') {
         playersInput.querySelector('h3').textContent = 'Nome do Jogador';
-            // Polling de estado (auto-atualização)
-            let pollIntervalId = null;
-            function startPolling(intervalMs = 1500) {
-                try { if (pollIntervalId) clearInterval(pollIntervalId); } catch (_) {}
-                if (!gameState.gameId) return;
-                pollIntervalId = setInterval(() => {
-                    // Apenas atualiza se houver jogo
-                    if (gameState.gameId) {
-                        refreshGameState();
-                    }
-                }, intervalMs);
-                debugLog('polling:start', { intervalMs });
-            }
-            function stopPolling() {
-                try { if (pollIntervalId) clearInterval(pollIntervalId); } catch (_) {}
-                pollIntervalId = null;
-                debugLog('polling:stop');
-            }
         document.getElementById('players-list').innerHTML = '';
         gameState.players = [];
     } else {
         playersInput.querySelector('h3').textContent = 'Adicionar Jogadores (2-5)';
     }
 }
-                if (screenId === 'game-screen') {
-                    startPolling();
-                } else {
-                    stopPolling();
-                }
 
 function addPlayer() {
     const input = document.getElementById('player-name-input');
@@ -163,7 +164,8 @@ async function startGame() {
         if (response.ok) {
             gameState.gameId = data.game_id;
             try { localStorage.setItem(LS_GAME_ID, data.game_id); } catch (_) {}
-            if (gameState.players && gameState.players.length === 1) {
+            // Salvar o primeiro jogador como jogador local (quem criou o jogo)
+            if (gameState.players && gameState.players.length >= 1) {
                 try { localStorage.setItem(LS_PLAYER_NAME, gameState.players[0]); } catch (_) {}
             }
             try {
@@ -178,13 +180,6 @@ async function startGame() {
                 } else {
                     hideWordModal();
                 }
-                        const detail = (data && data.detail) ? data.detail : 'Erro desconhecido';
-                        if (detail.includes('Jogo já terminou') || detail.includes('rodadas já foram jogadas')) {
-                            // Sincroniza estado e mantém modal de resultado fechado, pois é fim de jogo
-                            await refreshGameState();
-                        } else {
-                            alert('Erro ao iniciar próxima rodada: ' + detail);
-                        }
                 shareGame();
                 const turnInfo = document.getElementById('turn-info');
                 if (turnInfo) turnInfo.textContent = 'Aguardando outros jogadores entrarem via link...';
@@ -213,6 +208,9 @@ function showWordModal(creatorName) {
     const generateHintCheckbox = document.getElementById('generate-hint-checkbox');
     if (hintInput) hintInput.value = '';
     if (generateHintCheckbox) generateHintCheckbox.checked = false;
+    
+    // Pausar polling enquanto modal estiver aberto
+    stopPolling();
 }
 
 async function submitSecretWord() {
@@ -245,7 +243,7 @@ async function submitSecretWord() {
         const data = await response.json();
         debugLog('submitSecretWord response', { ok: response.ok, data });
         if (response.ok) {
-            document.getElementById('word-modal').classList.remove('active');
+            hideWordModal();
             await refreshGameState();
         } else {
             alert('Erro: ' + (data.detail || 'Erro desconhecido'));
@@ -255,6 +253,13 @@ async function submitSecretWord() {
         alert('Erro ao enviar palavra: ' + error.message);
     } finally {
         showLoading(false);
+    }
+}
+
+function cancelWordCreation() {
+    if (confirm('Tem certeza que deseja cancelar? O jogo será encerrado e você voltará para a tela inicial.')) {
+        hideWordModal();
+        resetGameState();
     }
 }
 
@@ -573,15 +578,85 @@ async function nextRound() {
             
             // Se for PvP, mostrar modal para novo criador
             if (data.mode === 'pvp' && data.game_status === 'waiting_word') {
-                showWordModal(data.word_creator);
+                const local = getLocalPlayerName();
+                if (local && local === data.word_creator) {
+                    showWordModal(data.word_creator);
+                }
             }
+            
+            // Retomar polling para sincronizar todos os jogadores
+            startPolling();
         } else {
-            alert('Erro ao iniciar próxima rodada: ' + (data.detail || 'Erro desconhecido'));
+            // Se erro indicar que jogo terminou, criar novo jogo automaticamente
+            const detail = (data && data.detail) ? data.detail : '';
+            if (detail.includes('Jogo já terminou') || detail.includes('rodadas já foram jogadas')) {
+                await createNewGameWithSamePlayers();
+            } else {
+                alert('Erro ao iniciar próxima rodada: ' + (data.detail || 'Erro desconhecido'));
+            }
         }
     } catch (error) {
         alert('Erro ao conectar com o servidor: ' + error.message);
     } finally {
         showLoading(false);
+    }
+}
+
+async function createNewGameWithSamePlayers() {
+    try {
+        // Obter estado do jogo atual
+        const currentGameResponse = await fetch(`/api/proxy/game/${gameState.gameId}`);
+        if (!currentGameResponse.ok) {
+            alert('Não foi possível obter informações do jogo atual');
+            return;
+        }
+        
+        const currentGame = await currentGameResponse.json();
+        
+        // Criar novo jogo com os mesmos jogadores
+        const response = await fetch('/api/proxy/game/new', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                mode: currentGame.mode, 
+                players: currentGame.players 
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Atualizar estado do jogo
+            gameState.gameId = data.game_id;
+            try { 
+                localStorage.setItem(LS_GAME_ID, data.game_id);
+            } catch (_) {}
+            
+            // Atualizar URL
+            try {
+                const newUrl = `${window.location.origin}/?game=${data.game_id}`;
+                window.history.replaceState({}, document.title, newUrl);
+            } catch (_) {}
+            
+            // Atualizar UI
+            updateGameUI(data);
+            
+            // Mostrar mensagem e compartilhar link
+            alert('Novo jogo criado! Compartilhe o link com os outros jogadores.');
+            shareGame();
+            
+            // Se for o criador da palavra, abrir modal
+            const local = getLocalPlayerName();
+            if (data.mode === 'pvp' && data.game_status === 'waiting_word') {
+                if (local && local === data.word_creator) {
+                    showWordModal(data.word_creator);
+                }
+            }
+        } else {
+            alert('Erro ao criar novo jogo: ' + (data.detail || 'Erro desconhecido'));
+        }
+    } catch (error) {
+        alert('Erro ao criar novo jogo: ' + error.message);
     }
 }
 
@@ -612,6 +687,13 @@ function showScreen(screenId) {
         screen.classList.remove('active');
     });
     document.getElementById(screenId).classList.add('active');
+    
+    // Controlar polling baseado na tela ativa
+    if (screenId === 'game-screen') {
+        startPolling();
+    } else {
+        stopPolling();
+    }
 }
 
 function showLoading(show) {
@@ -742,6 +824,58 @@ function generateQRCode(url) {
     qrContainer.appendChild(img);
 }
 
+async function abandonGame() {
+    if (!confirm('Tem certeza que deseja abandonar o jogo?')) {
+        return;
+    }
+    
+    const localPlayer = getLocalPlayerName();
+    if (!localPlayer || !gameState.gameId) {
+        // Se não há jogador local ou jogo, apenas volta para setup
+        resetGameState();
+        return;
+    }
+    
+    showLoading(true);
+    try {
+        // Tentar remover o jogador do jogo
+        const response = await fetch(`/api/proxy/game/${gameState.gameId}/abandon`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ player: localPlayer })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            // Se o jogo terminou (apenas 1 jogador restante em PvP com 2 jogadores)
+            if (data.game_status === 'game_finished') {
+                alert(`${data.game_winner} venceu o jogo!`);
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao abandonar jogo:', error);
+    } finally {
+        showLoading(false);
+        resetGameState();
+    }
+}
+
+function resetGameState() {
+    stopPolling();
+    gameState.gameId = null;
+    gameState.players = [];
+    gameState.currentPlayer = null;
+    try {
+        localStorage.removeItem(LS_GAME_ID);
+        localStorage.removeItem(LS_PLAYER_NAME);
+    } catch (_) {}
+    showScreen('setup-screen');
+    // Limpar URL
+    try {
+        window.history.replaceState({}, document.title, window.location.pathname);
+    } catch (_) {}
+}
+
 // Verificar se há um ID de jogo na URL ao carregar ou retomar sessão salva
 window.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -766,6 +900,15 @@ async function resumeGame(gameId) {
             gameState.players = data.players || [];
             showScreen('game-screen');
             updateGameUI(data);
+            
+            // Verificar se deve mostrar modal de palavra após retomar
+            const local = getLocalPlayerName();
+            if (data.mode === 'pvp' && data.game_status === 'waiting_word') {
+                if (local && local === data.word_creator) {
+                    setTimeout(() => showWordModal(data.word_creator), 100);
+                }
+            }
+            
             startPolling();
             try {
                 const url = new URL(window.location.href);
@@ -798,6 +941,14 @@ async function joinExistingGame(gameId, opts = { tryResume: false }) {
                 gameState.players = data.players || [];
                 showScreen('game-screen');
                 updateGameUI(data);
+                
+                // Verificar se deve mostrar modal de palavra após retomar
+                if (data.mode === 'pvp' && data.game_status === 'waiting_word') {
+                    if (localName === data.word_creator) {
+                        setTimeout(() => showWordModal(data.word_creator), 100);
+                    }
+                }
+                
                 startPolling();
                 try {
                     const url = new URL(window.location.href);

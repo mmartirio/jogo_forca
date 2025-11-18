@@ -1,0 +1,183 @@
+{
+  "info": {
+    "name": "Jogo da Forca API",
+    "description": "Coleção de testes do backend Spring Boot",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Game",
+      "item": [
+        {
+          "name": "Criar Jogo PvP (2 jogadores)",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mode\": \"pvp\",\n  \"players\": [\"Alice\", \"Bob\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/game/new",
+              "host": ["{{base_url}}"],
+              "path": ["api", "game", "new"]
+            }
+          }
+        },
+        {
+          "name": "Criar Jogo PvP (5 jogadores)",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mode\": \"pvp\",\n  \"players\": [\"Ana\", \"Bruno\", \"Carlos\", \"Diana\", \"Eduardo\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/game/new",
+              "host": ["{{base_url}}"],
+              "path": ["api", "game", "new"]
+            }
+          }
+        },
+        {
+          "name": "Criar Jogo PvC",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mode\": \"pvc\",\n  \"players\": [\"Jogador1\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/game/new",
+              "host": ["{{base_url}}"],
+              "path": ["api", "game", "new"]
+            }
+          }
+        },
+        {
+          "name": "Entrar no Jogo",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"player\": \"Alice\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/game/{{game_id}}/join",
+              "host": ["{{base_url}}"],
+              "path": ["api", "game", "{{game_id}}", "join"]
+            }
+          }
+        },
+        {
+          "name": "Submeter Palavra",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"word\": \"exemplo\",\n  \"hint\": \"Dica para a palavra\",\n  \"generateHint\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/game/{{game_id}}/submit-word",
+              "host": ["{{base_url}}"],
+              "path": ["api", "game", "{{game_id}}", "submit-word"]
+            }
+          }
+        },
+        {
+          "name": "Adivinhar Letra",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"letter\": \"A\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/game/{{game_id}}/guess",
+              "host": ["{{base_url}}"],
+              "path": ["api", "game", "{{game_id}}", "guess"]
+            }
+          }
+        },
+        {
+          "name": "Estado do Jogo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/game/{{game_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "game", "{{game_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Próxima Rodada",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/game/{{game_id}}/next-round",
+              "host": ["{{base_url}}"],
+              "path": ["api", "game", "{{game_id}}", "next-round"]
+            }
+          }
+        },
+        {
+          "name": "Abandonar Jogo",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"player\": \"Alice\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/game/{{game_id}}/abandon",
+              "host": ["{{base_url}}"],
+              "path": ["api", "game", "{{game_id}}", "abandon"]
+            }
+          }
+        },
+        {
+          "name": "Deletar Jogo",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/game/{{game_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "game", "{{game_id}}"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8080" },
+    { "key": "game_id", "value": "" }
+  ]
+}

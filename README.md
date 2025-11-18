@@ -67,7 +67,7 @@ Abra o navegador em: `http://localhost:5000`
 
 ## 🔌 Testes rápidos de API
 
-Via proxy do frontend (recomendado no navegador/Insomnia):
+Via proxy do frontend (recomendado no navegador/Postman):
 
 - Criar jogo (PvC): `POST http://localhost:5000/api/proxy/game/new`
   Body:
@@ -83,6 +83,18 @@ Via proxy do frontend (recomendado no navegador/Insomnia):
 - Estado do jogo: `GET http://localhost:5000/api/proxy/game/{id}`
 
 Endpoints diretos do backend (sem proxy): substitua `http://localhost:5000/api/proxy` por `http://localhost:8080/api`.
+
+## 📖 Swagger UI (testes via navegador)
+
+Com o backend rodando, acesse a documentação e execute as rotas pelo navegador:
+
+- Swagger UI: `http://localhost:8080/swagger-ui/`
+- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+
+No Swagger UI, você pode:
+- Explorar todos os endpoints (`/api/game/*`, `/api/health`).
+- Clicar em "Try it out" para enviar requisições diretamente pelo browser.
+- Preencher parâmetros como `gameId` e bodies JSON sem precisar do Postman.
 
 ## 🏆 Regras de pontuação
 

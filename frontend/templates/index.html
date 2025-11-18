@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script>
         // Base sugerida para convite em rede local (quando a aba estiver em localhost)
-        window.LOCAL_INVITE_BASE = "http://{{ local_ip }}:5000";
+        window.LOCAL_INVITE_BASE = window.location.origin;
     </script>
 </head>
 <body>
@@ -55,9 +55,14 @@
             <div class="round-info">
                 <span id="round-number">Rodada 1/3</span>
                 <span id="turn-info"></span>
-                <button onclick="shareGame()" class="btn btn-share" title="Compartilhar jogo">
-                    🔗 Compartilhar
-                </button>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button onclick="shareGame()" class="btn btn-share" title="Compartilhar jogo">
+                        🔗 Compartilhar
+                    </button>
+                    <button onclick="abandonGame()" class="btn btn-danger" title="Abandonar jogo">
+                        ❌ Abandonar
+                    </button>
+                </div>
             </div>
 
             <!-- Área da Forca -->
@@ -118,17 +123,20 @@
             <p class="instruction">Digite uma palavra para o outro jogador adivinhar</p>
             <input type="text" id="secret-word-input" placeholder="Digite a palavra" maxlength="15">
             
-            <div class="hint-section" style="margin-top: 1rem;">
-                <label for="hint-input" style="display: block; margin-bottom: 0.5rem; color: #555;">💡 Dica (opcional):</label>
-                <input type="text" id="hint-input" placeholder="Ex: Usa na cabeça" maxlength="100" style="width: 100%; padding: 0.8rem; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;">
-                
-                <div style="margin-top: 0.8rem; display: flex; align-items: center; gap: 0.5rem;">
+            <!-- Dica alinhada à direita -->
+            <div class="hint-section" style="margin-top: 0.5rem; display: flex; flex-direction: column; align-items: flex-end;">
+                <label for="hint-input" style="margin-bottom: 0.5rem; color: #555; align-self: flex-end;">💡 Dica (opcional):</label>
+                <input type="text" id="hint-input" placeholder="Ex: Usa na cabeça" maxlength="100" style="width: 60%; min-width: 220px; padding: 0.8rem; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; align-self: flex-end;">
+                <div style="margin-top: 0.8rem; display: flex; align-items: center; gap: 0.5rem; align-self: flex-end;">
                     <input type="checkbox" id="generate-hint-checkbox" style="width: 18px; height: 18px; cursor: pointer;">
                     <label for="generate-hint-checkbox" style="cursor: pointer; color: #667eea; font-weight: 500;">🤖 Gerar dica com IA</label>
                 </div>
             </div>
             
-            <button onclick="submitSecretWord()" class="btn btn-primary" style="margin-top: 1.5rem;">Confirmar Palavra</button>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button onclick="cancelWordCreation()" class="btn btn-secondary" style="flex: 1;">Cancelar</button>
+                <button onclick="submitSecretWord()" class="btn btn-primary" style="flex: 1;">Confirmar Palavra</button>
+            </div>
         </div>
     </div>
 
