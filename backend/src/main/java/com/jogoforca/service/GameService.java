@@ -29,7 +29,17 @@ public class GameService {
         game.setCurrentRound(1);
 
         // Determinar número máximo de rodadas
-        int maxRounds = config.getPlayers().size() == 2 ? 3 : 2;
+        int maxRounds;
+        if ("pvc".equals(config.getMode())) {
+            // PvC: melhor de 3 para evitar empates
+            maxRounds = 3;
+        } else if (config.getPlayers().size() == 2) {
+            // PvP com 2 jogadores: melhor de 3
+            maxRounds = 3;
+        } else {
+            // PvP com mais jogadores: 2 rodadas
+            maxRounds = 2;
+        }
         game.setMaxRounds(maxRounds);
 
         // Inicializar scores

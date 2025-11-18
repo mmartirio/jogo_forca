@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/game")
@@ -20,6 +22,7 @@ import java.util.Map;
 public class GameController {
 
     private final GameService gameService;
+    private static final Logger log = LoggerFactory.getLogger(GameController.class);
 
     public GameController(GameService gameService) {
         this.gameService = gameService;
@@ -28,11 +31,16 @@ public class GameController {
     @PostMapping("/new")
     public ResponseEntity<?> createGame(@Valid @RequestBody GameConfig config) {
         try {
+            log.debug("[createGame] payload mode={}, players={} ", config.getMode(), config.getPlayers());
             Game game = gameService.createGame(config);
-            return ResponseEntity.ok(convertToResponse(game));
+            Map<String, Object> resp = convertToResponse(game);
+            log.debug("[createGame] created gameId={} status={}", game.getGameId(), game.getGameStatus());
+            return ResponseEntity.ok(resp);
         } catch (IllegalArgumentException e) {
+            log.warn("[createGame] bad request: {}", e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("detail", e.getMessage()));
         } catch (Exception e) {
+            log.error("[createGame] error", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("detail", "Erro ao criar jogo: " + e.getMessage()));
         }
@@ -42,11 +50,18 @@ public class GameController {
     public ResponseEntity<?> submitWord(@PathVariable String gameId,
             @Valid @RequestBody WordSubmit wordSubmit) {
         try {
+            log.debug("[submitWord] gameId={} wordLength={}", gameId,
+                    wordSubmit.getWord() != null ? wordSubmit.getWord().length() : null);
             Game game = gameService.submitWord(gameId, wordSubmit.getWord());
-            return ResponseEntity.ok(convertToResponse(game));
+            Map<String, Object> resp = convertToResponse(game);
+            log.debug("[submitWord] gameId={} -> status={} guesser={}", gameId, game.getGameStatus(),
+                    game.getWordGuesser());
+            return ResponseEntity.ok(resp);
         } catch (IllegalArgumentException | IllegalStateException e) {
+            log.warn("[submitWord] bad request for gameId {}: {}", gameId, e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("detail", e.getMessage()));
         } catch (Exception e) {
+            log.error("[submitWord] error gameId={}", gameId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("detail", "Erro ao submeter palavra: " + e.getMessage()));
         }
@@ -56,11 +71,15 @@ public class GameController {
     public ResponseEntity<?> guessLetter(@PathVariable String gameId,
             @Valid @RequestBody GuessLetter guessLetter) {
         try {
+            log.debug("[guess] gameId={} letter={}", gameId, guessLetter.getLetter());
             Map<String, Object> result = gameService.guessLetter(gameId, guessLetter.getLetter());
+            log.debug("[guess] gameId={} result={}", gameId, result);
             return ResponseEntity.ok(result);
         } catch (IllegalArgumentException | IllegalStateException e) {
+            log.warn("[guess] bad request gameId {}: {}", gameId, e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("detail", e.getMessage()));
         } catch (Exception e) {
+            log.error("[guess] error gameId={}", gameId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("detail", "Erro ao adivinhar letra: " + e.getMessage()));
         }
@@ -70,11 +89,17 @@ public class GameController {
     public ResponseEntity<?> joinGame(@PathVariable String gameId,
             @Valid @RequestBody JoinGameRequest joinGameRequest) {
         try {
+            log.debug("[join] gameId={} player={}", gameId, joinGameRequest.getPlayer());
             Game game = gameService.joinGame(gameId, joinGameRequest.getPlayer());
-            return ResponseEntity.ok(convertToResponse(game));
+            Map<String, Object> resp = convertToResponse(game);
+            log.debug("[join] gameId={} players={} status={} creator={} guesser={} ", gameId, game.getPlayers(),
+                    game.getGameStatus(), game.getWordCreator(), game.getWordGuesser());
+            return ResponseEntity.ok(resp);
         } catch (IllegalArgumentException | IllegalStateException e) {
+            log.warn("[join] bad request for gameId {}: {}", gameId, e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("detail", e.getMessage()));
         } catch (Exception e) {
+            log.error("[join] error gameId={}", gameId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("detail", "Erro ao entrar no jogo: " + e.getMessage()));
         }
@@ -83,12 +108,18 @@ public class GameController {
     @GetMapping("/{gameId}")
     public ResponseEntity<?> getGameState(@PathVariable String gameId) {
         try {
+            log.debug("[state] gameId={} requested", gameId);
             Game game = gameService.getGame(gameId);
-            return ResponseEntity.ok(convertToResponse(game));
+            Map<String, Object> resp = convertToResponse(game);
+            log.debug("[state] gameId={} status={} attemptsLeft={} guessedLetters={} ", gameId, game.getGameStatus(),
+                    game.getAttemptsLeft(), game.getGuessedLetters());
+            return ResponseEntity.ok(resp);
         } catch (IllegalArgumentException e) {
+            log.warn("[state] not found gameId {}: {}", gameId, e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("detail", e.getMessage()));
         } catch (Exception e) {
+            log.error("[state] error gameId={}", gameId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("detail", "Erro ao buscar jogo: " + e.getMessage()));
         }
@@ -97,11 +128,17 @@ public class GameController {
     @PostMapping("/{gameId}/next-round")
     public ResponseEntity<?> nextRound(@PathVariable String gameId) {
         try {
+            log.debug("[nextRound] gameId={} requested", gameId);
             Game game = gameService.nextRound(gameId);
-            return ResponseEntity.ok(convertToResponse(game));
+            Map<String, Object> resp = convertToResponse(game);
+            log.debug("[nextRound] gameId={} -> status={} round={} creator={} guesser={}", gameId, game.getGameStatus(),
+                    game.getCurrentRound(), game.getWordCreator(), game.getWordGuesser());
+            return ResponseEntity.ok(resp);
         } catch (IllegalArgumentException | IllegalStateException e) {
+            log.warn("[nextRound] bad request for gameId {}: {}", gameId, e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("detail", e.getMessage()));
         } catch (Exception e) {
+            log.error("[nextRound] error gameId={}", gameId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("detail", "Erro ao iniciar próxima rodada: " + e.getMessage()));
         }
@@ -110,12 +147,15 @@ public class GameController {
     @DeleteMapping("/{gameId}")
     public ResponseEntity<?> deleteGame(@PathVariable String gameId) {
         try {
+            log.debug("[delete] gameId={} requested", gameId);
             gameService.deleteGame(gameId);
             return ResponseEntity.ok(Map.of("message", "Jogo deletado com sucesso"));
         } catch (IllegalArgumentException e) {
+            log.warn("[delete] not found {}: {}", gameId, e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("detail", e.getMessage()));
         } catch (Exception e) {
+            log.error("[delete] error gameId={}", gameId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("detail", "Erro ao deletar jogo: " + e.getMessage()));
         }

@@ -1,219 +1,113 @@
-# 🎮 Jogo da Forca - FastAPI + Flask + Ollama
+# 🎮 Jogo da Forca — Spring Boot (Java) + Flask (Python)
 
-Jogo da Forca completo com modo Jogador vs Jogador (até 5 jogadores) e Jogador vs CPU (IA usando Ollama).
+Aplicação full-stack do Jogo da Forca com dois modos (PvP e PvC), backend em Spring Boot 3.5 (Java 22) e frontend em Flask. O frontend faz proxy das chamadas para o backend.
 
 ## 📋 Funcionalidades
 
-- **Modo PvP**: 2 a 5 jogadores competindo
-- **Modo PvC**: Jogador contra IA (Ollama)
-- **Sistema de pontuação**: Melhor de 3 para 2 jogadores, primeiro a 2 pontos para mais jogadores
-- **Interface responsiva**: UI/UX amigável e moderna
-- **Seleção aleatória**: Escolha automática de quem cria a palavra no PvP
-- **Modal secreto**: Apenas o criador da palavra vê a entrada
-- **API REST**: Rotas bem definidas para teste via Insomnia
+- **Modo PvP**: 2 a 5 jogadores
+- **Modo PvC**: Jogador vs CPU (palavra pela CPU; usa Ollama se disponível, com fallback)
+- **Pontuação**: Sem empates no PvC (melhor de 3); PvP definido por número de jogadores
+- **UI responsiva**: Teclado virtual, modais e placar
+- **Compartilhar convite**: Link/QR code para convidar
 
-## 🛠️ Tecnologias
+## 🛠️ Arquitetura e Tecnologias
 
-- **Backend**: FastAPI (Python)
-- **Frontend**: Flask (Python) + HTML/CSS/JavaScript
-- **IA**: Ollama (modelo tinyllama)
-- **Sem banco de dados**: Armazenamento em memória
+- **Backend**: Spring Boot 3.5 (Java 22), Maven
+- **Frontend**: Flask (Python), HTML/CSS/JS
+- **Opcional**: Ollama (ex.: `tinyllama`) para gerar palavras no modo CPU
+- **Portas**: Backend `8080`, Frontend `5000`
 
 ## 📦 Pré-requisitos
 
-1. **Python 3.8+** instalado
-2. **Ollama** instalado e rodando localmente
-   - Download: https://ollama.ai/
-   - Instalar modelo leve: `ollama pull tinyllama`
+- Windows com PowerShell (v5.1 ou superior)
+- Java JDK 22 e Maven 3.9+
+- Python 3.10+ e `pip`
+- (Opcional) **Ollama** instalado e um modelo leve: `ollama pull tinyllama`
 
-## 🚀 Instalação
+## ▶️ Como Executar (sem .bat)
 
-### 1. Instalar Dependências do Backend
+Abra dois terminais (PowerShell): um para o backend e outro para o frontend.
 
-```powershell
-cd backend
-pip install -r requirements.txt
-```
-
-### 2. Instalar Dependências do Frontend
-
-```powershell
-cd ..\frontend
-pip install -r requirements.txt
-```
-
-## ▶️ Como Executar
-
-### 1. Iniciar Ollama (se ainda não estiver rodando)
-
-Abra um terminal e execute:
-
-```powershell
-ollama serve
-```
-
-Em outro terminal, baixe o modelo leve:
-
-```powershell
-ollama pull tinyllama
-```
-
-### 2. Iniciar o Backend (FastAPI)
+### 1) Backend (Spring Boot)
 
 ```powershell
 cd backend
-python main.py
+mvn -v
+mvn clean package -DskipTests
+java -jar target\jogo-forca-backend-1.0.0.jar
+# alternativa durante o desenvolvimento:
+# mvn spring-boot:run
 ```
 
-O backend estará disponível em: `http://localhost:8000`
+Saúde do backend:
 
-### 3. Iniciar o Frontend (Flask)
+```powershell
+Invoke-RestMethod http://localhost:8080/api/health
+```
 
-Abra outro terminal:
+### 2) Frontend (Flask)
 
 ```powershell
 cd frontend
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
 python app.py
 ```
 
-O frontend estará disponível em: `http://localhost:5000`
+Saúde do proxy (frontend → backend):
 
-### 4. Acessar o Jogo
-
-Abra seu navegador e acesse: `http://localhost:5000`
-
-## 🎯 Como Jogar
-
-### Modo Jogador vs Jogador (PvP)
-
-1. Selecione "Jogador vs Jogador"
-2. Adicione de 2 a 5 jogadores
-3. Clique em "Iniciar Jogo"
-4. O sistema escolhe aleatoriamente quem cria a palavra
-5. Um modal aparece apenas para o criador inserir a palavra
-6. O outro jogador começa a adivinhar usando o teclado virtual
-7. Ganhe 2 pontos para vencer (melhor de 3 para 2 jogadores)
-
-### Modo Jogador vs CPU (PvC)
-
-1. Selecione "Jogador vs CPU"
-2. Adicione 1 jogador
-3. Clique em "Iniciar Jogo"
-4. A IA (Ollama) gera automaticamente uma palavra
-5. Adivinhe a palavra usando o teclado virtual
-6. Primeiro a 2 pontos vence
-
-## 🔌 Testando a API com Insomnia
-
-### Rotas Disponíveis
-
-#### 1. Criar Novo Jogo
-**POST** `http://localhost:8000/api/game/new`
-
-Body (JSON):
-```json
-{
-  "mode": "pvp",
-  "players": ["Alice", "Bob"]
-}
-```
-ou
-```json
-{
-  "mode": "pvc",
-  "players": ["Alice"]
-}
+```powershell
+Invoke-RestMethod http://localhost:5000/api/proxy/health
 ```
 
-#### 2. Submeter Palavra Secreta (apenas PvP)
-**POST** `http://localhost:8000/api/game/{game_id}/submit-word`
+### 3) Acessar o jogo
 
-Body (JSON):
-```json
-{
-  "word": "PYTHON"
-}
-```
+Abra o navegador em: `http://localhost:5000`
 
-#### 3. Adivinhar Letra
-**POST** `http://localhost:8000/api/game/{game_id}/guess`
+## 🔌 Testes rápidos de API
 
-Body (JSON):
-```json
-{
-  "letter": "A"
-}
-```
+Via proxy do frontend (recomendado no navegador/Insomnia):
 
-#### 4. Obter Status do Jogo
-**GET** `http://localhost:8000/api/game/{game_id}`
+- Criar jogo (PvC): `POST http://localhost:5000/api/proxy/game/new`
+  Body:
+  ```json
+  { "mode": "pvc", "players": ["Marcos"] }
+  ```
+- Adivinhar letra: `POST http://localhost:5000/api/proxy/game/{id}/guess`
+  Body:
+  ```json
+  { "letter": "A" }
+  ```
+- Próxima rodada: `POST http://localhost:5000/api/proxy/game/{id}/next-round`
+- Estado do jogo: `GET http://localhost:5000/api/proxy/game/{id}`
 
-#### 5. Iniciar Próxima Rodada
-**POST** `http://localhost:8000/api/game/{game_id}/next-round`
+Endpoints diretos do backend (sem proxy): substitua `http://localhost:5000/api/proxy` por `http://localhost:8080/api`.
 
-#### 6. Deletar Jogo
-**DELETE** `http://localhost:8000/api/game/{game_id}`
+## 🏆 Regras de pontuação
 
-#### 7. Listar Todos os Jogos
-**GET** `http://localhost:8000/api/games`
+- **PvC**: melhor de 3 (primeiro a 2 vitórias). Não há empates.
+- **PvP**: 2 jogadores (melhor de 3). 3–5 jogadores (primeiro a 2 vitórias).
 
-## 📱 Responsividade
+## 💡 Dicas e troubleshooting
 
-A interface é totalmente responsiva e funciona em:
-- Desktop (1920px+)
-- Tablets (768px - 1024px)
-- Smartphones (320px - 767px)
+- Liberar portas 8080/5000 (se necessário; requer privilégios):
+  ```powershell
+  $ports = 8080,5000
+  Get-NetTCPConnection -LocalPort $ports -State Listen |
+    Select-Object -Expand OwningProcess -Unique |
+    ForEach-Object { Stop-Process -Id $_ -Force }
+  ```
+- Ativação de venv bloqueada? Permitir scripts do PowerShell:
+  ```powershell
+  Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+  ```
+- Ollama opcional: se indisponível, o backend usa fallback de palavra.
+- Logs de erro do Flask: consulte `frontend\flask_err.log` (se configurado).
 
-## 🎨 Características da Interface
+## 📚 Notas
 
-- **Design moderno**: Gradiente roxo com elementos arredondados
-- **Animações suaves**: Transições e efeitos visuais
-- **Modais elegantes**: Para criação de palavra e resultado
-- **Placar em tempo real**: Acompanhe a pontuação
-- **Teclado virtual**: Clique nas letras para adivinhar
-- **Boneco da forca**: Desenho SVG que aparece progressivamente
-- **Centralizacao**: Todos componentes centralizados
-
-## 🏆 Sistema de Pontuação
-
-- **2 Jogadores**: Melhor de 3 (primeiro a 2 pontos vence)
-- **3-5 Jogadores**: Primeiro jogador a fazer 2 pontos vence
-- **Modo PvC**: Primeiro a 2 pontos (jogador ou CPU) vence
-
-## 🐛 Troubleshooting
-
-### Ollama não está respondendo
-- Verifique se o Ollama está rodando: `ollama serve`
-- Verifique se o modelo está instalado: `ollama list`
-- Se não tiver o tinyllama, instale: `ollama pull tinyllama`
-
-### Erro de CORS
-- Certifique-se de que o backend está rodando na porta 8000
-- Verifique as configurações de CORS no arquivo `backend/main.py`
-
-### Frontend não conecta ao backend
-- Verifique se ambos servidores estão rodando
-- Backend: `http://localhost:8000`
-- Frontend: `http://localhost:5000`
-
-## 📝 Observações
-
-- Os jogos são armazenados em memória e serão perdidos ao reiniciar o servidor
-- Para produção, considere adicionar persistência com Redis ou banco de dados
-- O modelo Ollama pode demorar alguns segundos na primeira execução
-- Se o Ollama falhar, o sistema usa palavras padrão como fallback
-
-## 🎮 Exemplo de Fluxo de Jogo (PvP)
-
-1. Alice e Bob iniciam um jogo
-2. Sistema escolhe Alice para criar a palavra
-3. Alice vê modal secreto e digita "CODIGO"
-4. Bob vê 6 espaços vazios e começa a adivinhar
-5. Bob tenta "C" - correto! (aparece nas posições)
-6. Bob tenta "X" - errado! (boneco começa a aparecer)
-7. Bob completa a palavra e ganha a rodada
-8. Modal de vitória aparece com troféu
-9. Próxima rodada começa com papéis invertidos
-10. Primeiro a 2 pontos vence o jogo
+- O arquivo `iniciar.bat` foi removido. Utilize os comandos acima.
+- Estado do jogo é mantido em memória (não persistido). Reiniciar o backend limpa os jogos.
 
 Aproveite o jogo! 🎉

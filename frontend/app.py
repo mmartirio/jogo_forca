@@ -1,7 +1,10 @@
 from flask import Flask, render_template, jsonify, request
 import requests
+import logging
 import socket
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s [%(name)s] %(message)s')
+logger = logging.getLogger('frontend.proxy')
 app = Flask(__name__)
 
 # URL do backend Spring Boot
@@ -32,20 +35,34 @@ def index():
 
 @app.route('/api/proxy/<path:path>', methods=['GET', 'POST', 'DELETE'])
 def proxy_to_backend(path):
-    """Proxy para o backend FastAPI"""
+    """Proxy para o backend Spring Boot"""
     url = f"{BACKEND_URL}/api/{path}"
-    
+
     try:
+        timeout = 8
+        logger.info("Proxy %s %s -> %s", request.method, request.path, url)
         if request.method == 'GET':
-            response = requests.get(url)
+            response = requests.get(url, timeout=timeout)
         elif request.method == 'POST':
-            response = requests.post(url, json=request.get_json())
+            payload = request.get_json(silent=True)
+            logger.debug("Payload: %s", payload)
+            response = requests.post(url, json=payload, timeout=timeout)
         elif request.method == 'DELETE':
-            response = requests.delete(url)
-        
-        return jsonify(response.json()), response.status_code
+            response = requests.delete(url, timeout=timeout)
+
+        # Tentar repassar JSON ou texto bruto
+        try:
+            data = response.json()
+        except ValueError:
+            data = {"message": response.text}
+        logger.info("Proxy resp %s: %s", response.status_code, (data if isinstance(data, dict) else str(data)[:200]))
+        return jsonify(data), response.status_code
+    except requests.ConnectionError:
+        logger.error("Backend indisponível em %s", BACKEND_URL)
+        return jsonify({"detail": "Backend indisponível em " + BACKEND_URL}), 502
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Erro no proxy")
+        return jsonify({"detail": f"Erro no proxy: {str(e)}"}), 500
 
 if __name__ == '__main__':
     # Bind em 0.0.0.0 para permitir acesso de outros dispositivos na rede

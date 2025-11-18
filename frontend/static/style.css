@@ -273,6 +273,16 @@ body {
     min-width: 120px;
 }
 
+/* Destaques de estado no turno */
+#turn-info.waiting {
+    color: #d97706; /* âmbar */
+    font-weight: 700;
+}
+#turn-info.playing {
+    color: #059669; /* verde */
+    font-weight: 700;
+}
+
 .game-area {
     display: flex;
     flex-direction: column;
@@ -570,6 +580,36 @@ body {
     margin: 0 auto;
     border: 3px solid #667eea;
     border-radius: 10px;
+    width: 200px;
+    height: 200px;
+}
+
+/* Confetti overlay dentro do modal de resultado */
+.confetti-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.confetti-piece {
+    position: absolute;
+    width: 8px;
+    height: 14px;
+    opacity: 0.95;
+    will-change: transform;
+    animation-name: confetti-fall;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+}
+
+@keyframes confetti-fall {
+    0% { transform: translateY(-20px) rotate(0deg); }
+    100% { transform: translateY(120%) rotate(720deg); }
 }
 
 /* Responsividade */
@@ -602,13 +642,32 @@ body {
     }
     
     .key {
-        padding: 0.8rem;
-        font-size: 1rem;
+        padding: 0.7rem;
+        font-size: 0.95rem;
     }
     
     #hangman {
         width: 200px;
         height: 240px;
+    }
+    .btn {
+        padding: 0.7rem 1.1rem;
+        font-size: 0.95rem;
+    }
+    .btn-large {
+        padding: 0.9rem;
+        font-size: 1.05rem;
+    }
+    .btn-share {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.85rem;
+    }
+    .share-link-input {
+        font-size: 0.85rem;
+    }
+    .qr-container img {
+        width: 160px;
+        height: 160px;
     }
     
     .winner-title {
@@ -634,9 +693,47 @@ body {
     }
     
     .letter-box {
-        width: 35px;
-        height: 45px;
-        font-size: 1.3rem;
-        gap: 5px;
+        width: 30px;
+        height: 40px;
+        font-size: 1.1rem;
+    }
+    .attempts {
+        font-size: 1rem;
+    }
+    #hangman {
+        width: 180px;
+        height: 220px;
+    }
+    .keyboard {
+        grid-template-columns: repeat(auto-fit, minmax(32px, 1fr));
+        gap: 4px;
+    }
+    .key {
+        padding: 0.6rem;
+        font-size: 0.9rem;
+    }
+    .btn {
+        padding: 0.6rem 0.9rem;
+        font-size: 0.9rem;
+    }
+    .btn-large {
+        padding: 0.8rem;
+        font-size: 1rem;
+    }
+    .modal-content {
+        padding: 1.2rem;
+        width: 95%;
+        max-width: 420px;
+    }
+    .share-link-input {
+        font-size: 0.8rem;
+    }
+    .btn-copy {
+        font-size: 0.85rem;
+        padding: 0.6rem 0.8rem;
+    }
+    .qr-container img {
+        width: 140px;
+        height: 140px;
     }
 }

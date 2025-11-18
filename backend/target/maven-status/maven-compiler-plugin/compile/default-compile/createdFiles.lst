@@ -2,7 +2,10 @@ com\jogoforca\service\GameService.class
 com\jogoforca\model\GameConfig.class
 com\jogoforca\controller\GameController.class
 com\jogoforca\service\OllamaService.class
+com\jogoforca\controller\GlobalExceptionHandler.class
 com\jogoforca\JogoForcaApplication.class
 com\jogoforca\model\Game.class
+com\jogoforca\model\JoinGameRequest.class
 com\jogoforca\model\WordSubmit.class
+com\jogoforca\controller\HealthController.class
 com\jogoforca\model\GuessLetter.class

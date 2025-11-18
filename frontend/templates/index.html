@@ -121,6 +121,7 @@
     <!-- Modal de Resultado -->
     <div id="result-modal" class="modal">
         <div class="modal-content result-content">
+            <div id="confetti-container" class="confetti-container" aria-hidden="true"></div>
             <h1 class="winner-title">🏆 VENCEDOR! 🏆</h1>
             <div class="winner-info">
                 <div class="trophy">🏆</div>
@@ -131,8 +132,9 @@
                 <p class="next-text">Iniciar próxima partida</p>
                 <button onclick="nextRound()" class="btn btn-primary btn-large">Iniciar</button>
             </div>
-            <div id="game-over-section" style="display: none;">
-                <button onclick="backToMenu()" class="btn btn-primary btn-large">Voltar ao Menu</button>
+            <div id="game-over-section" style="display: none; display: none; gap: 10px; justify-content: center;">
+                <button onclick="startNewGameSamePlayers()" class="btn btn-primary btn-large">Novo Jogo</button>
+                <button onclick="backToMenu()" class="btn btn-secondary btn-large">Sair</button>
             </div>
         </div>
     </div>
@@ -152,7 +154,10 @@
             <p class="instruction">Compartilhe este link com outros jogadores:</p>
             <div class="share-link-container">
                 <input type="text" id="share-link" readonly class="share-link-input">
-                <button onclick="copyShareLink()" class="btn btn-copy">📋 Copiar</button>
+                <button onclick="copyShareLink(this)" class="btn btn-copy">📋 Copiar</button>
+            </div>
+            <div class="share-link-preview" style="margin-top: 8px;">
+                <a id="share-link-anchor" href="#" target="_blank" rel="noopener noreferrer">(link será gerado aqui)</a>
             </div>
             <div id="share-qr" class="qr-container"></div>
             <button onclick="closeShareModal()" class="btn btn-secondary">Fechar</button>
