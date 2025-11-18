@@ -731,11 +731,6 @@ function shareGame() {
     const base = (isLocal && window.LOCAL_INVITE_BASE) ? window.LOCAL_INVITE_BASE : window.location.origin;
     const gameUrl = `${base}/?game=${gameState.gameId}`;
     document.getElementById('share-link').value = gameUrl;
-    const anchor = document.getElementById('share-link-anchor');
-    if (anchor) {
-        anchor.href = gameUrl;
-        anchor.textContent = gameUrl;
-    }
     
     // Gerar QR Code
     generateQRCode(gameUrl);
